@@ -197,6 +197,7 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState("");
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [carouselAtEnd, setCarouselAtEnd] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   // WhatsApp comercial confirmado: +52 449 468 5875.
   // Es un número de contacto público. Se puede cambiar desde la variable del hosting.
@@ -215,9 +216,8 @@ function App() {
     if (!track || !firstCard) return;
     const gap = Number.parseFloat(window.getComputedStyle(track).columnGap) || 18;
     const step = firstCard.getBoundingClientRect().width + gap;
-    const next = Math.max(0, Math.min(projects.length - 1, carouselIndex + direction));
-    track.scrollTo({ left: next * step, behavior: "smooth" });
-    setCarouselIndex(next);
+    // Scroll based on current position so the final, partial carousel view remains reachable.
+    track.scrollBy({ left: direction * step, behavior: "smooth" });
   }
 
   function handleCarouselScroll() {
@@ -227,7 +227,9 @@ function App() {
     const gap = Number.parseFloat(window.getComputedStyle(track).columnGap) || 18;
     const step = firstCard.getBoundingClientRect().width + gap;
     if (!step) return;
-    setCarouselIndex(Math.max(0, Math.min(projects.length - 1, Math.round(track.scrollLeft / step))));
+    const atEnd = track.scrollWidth - track.clientWidth - track.scrollLeft <= 5;
+    setCarouselAtEnd(atEnd);
+    setCarouselIndex(atEnd ? projects.length - 1 : Math.max(0, Math.min(projects.length - 1, Math.round(track.scrollLeft / step))));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -436,7 +438,7 @@ function App() {
               <div className="carousel-position" aria-live="polite"><strong>{String(carouselIndex + 1).padStart(2, "0")}</strong><span> / {String(projects.length).padStart(2, "0")}</span></div>
               <div className="carousel-controls">
                 <button type="button" onClick={() => moveCarousel(-1)} disabled={carouselIndex === 0} aria-label="Proyecto anterior"><ArrowLeft size={19}/></button>
-                <button type="button" onClick={() => moveCarousel(1)} disabled={carouselIndex === projects.length - 1} aria-label="Proyecto siguiente"><ArrowRight size={19}/></button>
+                <button type="button" onClick={() => moveCarousel(1)} disabled={carouselAtEnd} aria-label="Proyecto siguiente"><ArrowRight size={19}/></button>
               </div>
             </div>
           </div>
