@@ -194,9 +194,9 @@ function ProjectCard({ project }: { project: Project }) {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState("");
-  // El único canal comercial de esta landing es WhatsApp.
-  // Sin un número válido, los CTA llevan a Contacto en vez de abrir un chat incorrecto.
-  const rawWhatsappNumber = (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined)?.replace(/\D/g, "") || "";
+  // WhatsApp comercial confirmado: +52 449 468 5875.
+  // Es un número de contacto público. Se puede cambiar desde la variable del hosting.
+  const rawWhatsappNumber = (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined)?.replace(/\D/g, "") || "524494685875";
   const whatsappNumber = /^\d{10,15}$/.test(rawWhatsappNumber) ? rawWhatsappNumber : "";
   const quickMessage = "Hola, equipo THE HEAT. Tengo un estudio fitness en Aguascalientes y quiero conocer sus servicios de branding, redes sociales y producción audiovisual. ¿Podemos platicar?";
   const whatsappHref = whatsappNumber
