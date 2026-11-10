@@ -301,7 +301,7 @@ function App() {
                   poster={projects[0].poster}
                   preload="metadata"
                 >
-                  <source src={projects[0].video} type="video/mp4" />
+                  <source src="https://res.cloudinary.com/jfum298a/video/upload/du_16,q_auto,so_6,w_720/v1794329742/the-heat-landing/parkour-evo.mp4" type="video/mp4" />
                 </video>
                 <div className="hero-video-shade" />
                 <div className="hero-visual-top">
