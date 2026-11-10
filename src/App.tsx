@@ -285,9 +285,13 @@ function App() {
 
       <main>
         <section className="hero-section hero-v2" id="inicio">
-          <video className="hero-background-video" autoPlay muted loop playsInline preload="metadata" poster={projects[0].poster} aria-hidden="true">
-            <source src="https://res.cloudinary.com/jfum298a/video/upload/du_16,q_auto,so_6,w_1280/v1794329742/the-heat-landing/parkour-evo.mp4" type="video/mp4" />
-          </video>
+          {/* Video ocupa el 100% del viewport; se recorta a formato horizontal con object-fit: cover.
+              La tipografía, navegación y formulario permanecen superpuestos sobre el video. */}
+          <div className="hero-video-stage" aria-hidden="true" style={{ backgroundImage: `url(${projects[0].poster})` }}>
+            <video className="hero-background-video" autoPlay muted loop playsInline preload="metadata" poster={projects[0].poster}>
+              <source src="https://res.cloudinary.com/jfum298a/video/upload/du_16,q_auto,so_6,w_1280/v1794329742/the-heat-landing/parkour-evo.mp4" type="video/mp4" />
+            </video>
+          </div>
           <div className="hero-film-overlay" aria-hidden="true" />
           <div className="hero-topline">
             <span>THE HEAT / CREATIVE STUDIO</span>
