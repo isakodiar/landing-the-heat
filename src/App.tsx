@@ -550,7 +550,7 @@ function App() {
       <footer className="site-footer">
         <div className="footer-main">
           <div className="footer-brand">
-            <a href="#inicio" aria-label="Volver al inicio"><img src="/the-heat-signature-dark.svg" alt="THE HEAT" /></a>
+            <a href="#inicio" aria-label="Volver al inicio"><img src="/the-heat-signature-pink.svg" alt="THE HEAT" /></a>
             <p>Estudio creativo que conecta estrategia y narrativa visual.</p>
           </div>
           <div className="footer-column">
