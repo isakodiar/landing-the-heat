@@ -126,7 +126,30 @@ const audiences = [
   "Estudios de entrenamiento funcional",
   "Pilates, yoga y disciplinas boutique",
   "Gimnasios y academias deportivas",
-  "Entrenadores y marcas personales",
+  "Estudios de box, danza y entrenamiento especializado",
+];
+
+const faqs = [
+  {
+    question: "¿Trabajan únicamente con estudios fitness de Aguascalientes?",
+    answer:
+      "Esta landing está enfocada en estudios de Aguascalientes. La estrategia y la postproducción también pueden trabajarse a distancia; las grabaciones presenciales se coordinan según ubicación, logística y propuesta.",
+  },
+  {
+    question: "¿Tengo que contratar los tres servicios?",
+    answer:
+      "No. Podemos comenzar con branding, gestión de redes o producción audiovisual por separado, o integrar los tres frentes si eso responde mejor a la etapa y los objetivos de tu estudio.",
+  },
+  {
+    question: "¿Qué sucede después de la llamada?",
+    answer:
+      "Revisamos el momento de tu negocio, tus objetivos y los retos de comunicación. Con ese diagnóstico preparamos una propuesta personalizada con alcance, entregables, tiempos y cotización.",
+  },
+  {
+    question: "¿Pueden garantizar más clientes o ventas?",
+    answer:
+      "No prometemos cifras sin conocer el negocio ni controlar todos los factores de venta. Definimos objetivos de posicionamiento y captación, construimos la comunicación y revisamos indicadores para mejorarla.",
+  },
 ];
 
 function ProjectCard({ project }: { project: Project }) {
@@ -251,6 +274,7 @@ function App() {
           <a href="#servicios" onClick={closeMenu}>Servicios</a>
           <a href="#proyectos" onClick={closeMenu}>Proyectos</a>
           <a href="#proceso" onClick={closeMenu}>Proceso</a>
+          <a href="#preguntas" onClick={closeMenu}>Preguntas</a>
           <a href="#contacto" onClick={closeMenu}>Contacto</a>
           <a className="nav-cta" href={bookingHref} target={bookingUrl ? "_blank" : undefined} rel={bookingUrl ? "noreferrer" : undefined} onClick={closeMenu}>
             Agenda una llamada <ArrowUpRight size={16} />
@@ -288,7 +312,7 @@ function App() {
               </div>
               <div className="hero-footnote">
                 <span>01 / 03</span>
-                <span>CREATIVIDAD CON DIRECCIÓN.</span>
+                <span>NO SOLO CREAR. DAR DIRECCIÓN.</span>
               </div>
             </div>
 
@@ -359,9 +383,19 @@ function App() {
               <p>Encontramos la idea que te distingue y la llevamos a cada punto de contacto.</p>
             </article>
             <article className="pain-card">
-              <span>03 / CONSISTENCIA</span>
+              <span>03 / TIEMPO</span>
               <h3>La operación diaria no te deja crear contenido.</h3>
               <p>Organizamos la estrategia y la producción para que comunicar no sea una carga más.</p>
+            </article>
+            <article className="pain-card">
+              <span>04 / CONFIANZA</span>
+              <h3>Ya probaste agencias o creadores sin una dirección clara.</h3>
+              <p>Empezamos por entender tu negocio y definir por qué y para quién comunicar.</p>
+            </article>
+            <article className="pain-card">
+              <span>05 / CLARIDAD</span>
+              <h3>No sabes qué contenido necesita tu marca.</h3>
+              <p>Convertimos tus objetivos y diferenciales en una estrategia de contenido concreta.</p>
             </article>
           </div>
         </section>
@@ -467,12 +501,37 @@ function App() {
           </div>
         </section>
 
+        <section className="faq-section section-pad" id="preguntas">
+          <div className="section-kicker dark-kicker">
+            <span>06</span><span>PREGUNTAS FRECUENTES</span><span className="kicker-rule" />
+            <span className="kicker-side">ANTES DE AGENDAR</span>
+          </div>
+          <div className="faq-layout">
+            <div className="faq-heading">
+              <h2>ANTES DE<br /><span>EMPEZAR.</span></h2>
+              <p>Queremos que sepas cómo trabajamos y qué puedes esperar antes de dar el siguiente paso.</p>
+            </div>
+            <div className="faq-list">
+              {faqs.map((item, index) => (
+                <details className="faq-item" key={item.question}>
+                  <summary>
+                    <span className="faq-number">0{index + 1}</span>
+                    <span className="faq-question">{item.question}</span>
+                    <span className="faq-toggle" aria-hidden="true">+</span>
+                  </summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="cta-section">
           <div className="cta-grid" aria-hidden="true" />
           <div className="cta-shard" aria-hidden="true" />
           <div className="cta-content">
             <div className="section-kicker light-kicker">
-              <span>06</span><span>EL SIGUIENTE MOVIMIENTO</span><span className="kicker-rule" />
+              <span>07</span><span>EL SIGUIENTE MOVIMIENTO</span><span className="kicker-rule" />
             </div>
             <p className="cta-overline">TU ESTUDIO YA TIENE LA ENERGÍA.</p>
             <h2>HAGAMOS QUE<br /><span>SE NOTE.</span></h2>
@@ -487,7 +546,7 @@ function App() {
         <section className="contact-section section-pad" id="contacto">
           <div className="contact-intro">
             <div className="section-kicker dark-kicker">
-              <span>07</span><span>HABLEMOS</span><span className="kicker-rule" />
+              <span>08</span><span>HABLEMOS</span><span className="kicker-rule" />
             </div>
             <h2>CUÉNTANOS<br />DE TU <span>ESTUDIO.</span></h2>
             <p>Déjanos tus datos y un poco de contexto. Queremos conocer tu proyecto antes de proponerte una solución.</p>
