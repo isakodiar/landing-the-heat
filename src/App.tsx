@@ -409,7 +409,7 @@ function App() {
           <div className="services-note">
             <span className="services-note-icon"><Sparkles size={18} /></span>
             <p>Podemos trabajar cada servicio de forma independiente o construir una solución integrada según la etapa de tu negocio.</p>
-            <a className="text-link light-link" href="#contacto">Hablemos de tu estudio <ArrowUpRight size={17} /></a>
+            <a className="text-link light-link" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>Hablemos por WhatsApp <MessageCircle size={17} /></a>
           </div>
         </section>
 
@@ -427,7 +427,7 @@ function App() {
           </div>
           <div className="work-bottom">
             <span>IMAGEN, RITMO Y NARRATIVA.</span>
-            <a className="text-link" href="#contacto">Hagamos visible tu estudio <ArrowUpRight size={17} /></a>
+            <a className="text-link" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>Hagamos visible tu estudio <MessageCircle size={17} /></a>
           </div>
         </section>
 
