@@ -124,7 +124,30 @@ const audiences = [
   "Estudios de entrenamiento funcional",
   "Pilates, yoga y disciplinas boutique",
   "Gimnasios y academias deportivas",
-  "Entrenadores y marcas personales",
+  "Estudios de box, danza y entrenamiento especializado",
+];
+
+const faqs = [
+  {
+    question: "¿Trabajan únicamente con estudios fitness de Aguascalientes?",
+    answer:
+      "Esta landing está enfocada en estudios de Aguascalientes. La estrategia y la postproducción también pueden trabajarse a distancia; las grabaciones presenciales se coordinan según ubicación, logística y propuesta.",
+  },
+  {
+    question: "¿Tengo que contratar los tres servicios?",
+    answer:
+      "No. Podemos comenzar con branding, gestión de redes o producción audiovisual por separado, o integrar los tres frentes si eso responde mejor a la etapa y los objetivos de tu estudio.",
+  },
+  {
+    question: "¿Qué sucede después de escribirles por WhatsApp?",
+    answer:
+      "Primero conocemos tu estudio, sus objetivos y necesidades. Si tiene sentido, coordinamos una llamada de diagnóstico y después preparamos una propuesta personalizada con alcance, tiempos y cotización.",
+  },
+  {
+    question: "¿Pueden garantizar más clientes o ventas?",
+    answer:
+      "No prometemos cifras sin conocer el negocio ni controlar todos los factores de venta. Definimos objetivos de posicionamiento y captación, construimos la comunicación y revisamos indicadores para mejorarla.",
+  },
 ];
 
 function ProjectCard({ project }: { project: Project }) {
@@ -171,61 +194,37 @@ function ProjectCard({ project }: { project: Project }) {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState("");
-  const bookingUrl = (import.meta.env.VITE_BOOKING_URL as string | undefined)?.trim();
-  const formEndpoint = (import.meta.env.VITE_FORM_ENDPOINT as string | undefined)?.trim();
-  const whatsappNumber = (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined)?.replace(/\D/g, "");
-  const contactEmail = (import.meta.env.VITE_CONTACT_EMAIL as string | undefined)?.trim();
-  const bookingHref = bookingUrl || "#contacto";
+  // WhatsApp comercial confirmado: +52 449 468 5875.
+  // Es un número de contacto público. Se puede cambiar desde la variable del hosting.
+  const rawWhatsappNumber = (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined)?.replace(/\D/g, "") || "524494685875";
+  const whatsappNumber = /^\d{10,15}$/.test(rawWhatsappNumber) ? rawWhatsappNumber : "";
+  const quickMessage = "Hola, equipo THE HEAT. Tengo un estudio fitness en Aguascalientes y quiero conocer sus servicios de branding, redes sociales y producción audiovisual. ¿Podemos platicar?";
+  const whatsappHref = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(quickMessage)}`
+    : "#contacto";
 
   const closeMenu = () => setMenuOpen(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries());
 
-    setFormStatus("");
-
-    if (formEndpoint) {
-      try {
-        const response = await fetch(formEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) throw new Error("No fue posible enviar la solicitud.");
-        setFormStatus("¡Listo! Recibimos tus datos. Nos pondremos en contacto contigo.");
-        form.reset();
-      } catch {
-        setFormStatus("No pudimos enviar tu solicitud. Inténtalo de nuevo o contáctanos por otro medio.");
-      }
+    if (!whatsappNumber) {
+      setFormStatus("El enlace de WhatsApp aún no está configurado. THE HEAT debe agregar su número comercial para activar este botón.");
       return;
     }
 
+    const formData = new FormData(event.currentTarget);
     const message = [
-      "Hola, THE HEAT. Me interesa agendar una llamada de diagnóstico.",
-      `Nombre: ${payload.name ?? ""}`,
-      `Estudio / marca: ${payload.studio ?? ""}`,
-      `WhatsApp: ${payload.phone ?? ""}`,
-      `Correo: ${payload.email ?? ""}`,
-      `Servicio: ${payload.service ?? ""}`,
-      `Contexto: ${payload.message ?? ""}`,
+      "Hola, THE HEAT. Me interesa conocer sus servicios para mi estudio fitness.",
+      `Nombre: ${formData.get("name") || ""}`,
+      `Estudio / marca: ${formData.get("studio") || ""}`,
+      `Servicio de interés: ${formData.get("service") || ""}`,
+      `Lo que quiero mejorar: ${formData.get("message") || "Por definir"}`,
     ].join("\n");
 
-    if (whatsappNumber) {
-      const whatsappWindow = window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
-      setFormStatus(whatsappWindow ? "Se abrió WhatsApp con tu solicitud preparada. Solo falta enviarla." : "Tu navegador bloqueó la ventana de WhatsApp. Permite las ventanas emergentes o utiliza otro medio de contacto.");
-      return;
-    }
-
-    if (contactEmail) {
-      window.location.href = `mailto:${contactEmail}?subject=${encodeURIComponent("Solicitud de llamada — THE HEAT")}&body=${encodeURIComponent(message)}`;
-      setFormStatus("Se abrió tu correo con la solicitud preparada. Solo falta enviarla.");
-      return;
-    }
-
-    setFormStatus("El formulario está diseñado, pero todavía falta conectar el destino de los mensajes. Configura VITE_FORM_ENDPOINT, VITE_WHATSAPP_NUMBER o VITE_CONTACT_EMAIL.");
+    // Navegación directa por acción del usuario: evita bloqueos de ventanas emergentes.
+    // El mensaje no se envía automáticamente; la persona confirma el envío en WhatsApp.
+    window.location.assign(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`);
   }
 
   return (
@@ -249,9 +248,10 @@ function App() {
           <a href="#servicios" onClick={closeMenu}>Servicios</a>
           <a href="#proyectos" onClick={closeMenu}>Proyectos</a>
           <a href="#proceso" onClick={closeMenu}>Proceso</a>
+          <a href="#preguntas" onClick={closeMenu}>Preguntas</a>
           <a href="#contacto" onClick={closeMenu}>Contacto</a>
-          <a className="nav-cta" href={bookingHref} target={bookingUrl ? "_blank" : undefined} rel={bookingUrl ? "noreferrer" : undefined} onClick={closeMenu}>
-            Agenda una llamada <ArrowUpRight size={16} />
+          <a className="nav-cta" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined} onClick={closeMenu}>
+            Hablemos por WhatsApp <MessageCircle size={16} />
           </a>
         </nav>
       </header>
@@ -277,8 +277,8 @@ function App() {
                 Construimos marcas, contenido y experiencias audiovisuales para que tu estudio destaque por lo que realmente lo hace diferente.
               </p>
               <div className="hero-actions">
-                <a className="button button-primary" href={bookingHref} target={bookingUrl ? "_blank" : undefined} rel={bookingUrl ? "noreferrer" : undefined}>
-                  Agenda una llamada <ArrowUpRight size={18} />
+                <a className="button button-primary" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>
+                  Hablar por WhatsApp <MessageCircle size={18} />
                 </a>
                 <a className="button button-ghost" href="#proyectos">
                   Explora nuestro trabajo <ArrowDown size={16} />
@@ -286,7 +286,7 @@ function App() {
               </div>
               <div className="hero-footnote">
                 <span>01 / 03</span>
-                <span>CREATIVIDAD CON DIRECCIÓN.</span>
+                <span>NO SOLO CREAR. DAR DIRECCIÓN.</span>
               </div>
             </div>
 
@@ -357,9 +357,19 @@ function App() {
               <p>Encontramos la idea que te distingue y la llevamos a cada punto de contacto.</p>
             </article>
             <article className="pain-card">
-              <span>03 / CONSISTENCIA</span>
+              <span>03 / TIEMPO</span>
               <h3>La operación diaria no te deja crear contenido.</h3>
               <p>Organizamos la estrategia y la producción para que comunicar no sea una carga más.</p>
+            </article>
+            <article className="pain-card">
+              <span>04 / CONFIANZA</span>
+              <h3>Ya probaste agencias o creadores sin una dirección clara.</h3>
+              <p>Empezamos por entender tu negocio y definir por qué y para quién comunicar.</p>
+            </article>
+            <article className="pain-card">
+              <span>05 / CLARIDAD</span>
+              <h3>No sabes qué contenido necesita tu marca.</h3>
+              <p>Convertimos tus objetivos y diferenciales en una estrategia de contenido concreta.</p>
             </article>
           </div>
         </section>
@@ -399,7 +409,7 @@ function App() {
           <div className="services-note">
             <span className="services-note-icon"><Sparkles size={18} /></span>
             <p>Podemos trabajar cada servicio de forma independiente o construir una solución integrada según la etapa de tu negocio.</p>
-            <a className="text-link light-link" href="#contacto">Hablemos de tu estudio <ArrowUpRight size={17} /></a>
+            <a className="text-link light-link" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>Hablemos por WhatsApp <MessageCircle size={17} /></a>
           </div>
         </section>
 
@@ -417,7 +427,7 @@ function App() {
           </div>
           <div className="work-bottom">
             <span>IMAGEN, RITMO Y NARRATIVA.</span>
-            <a className="text-link" href="#contacto">Hagamos visible tu estudio <ArrowUpRight size={17} /></a>
+            <a className="text-link" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>Hagamos visible tu estudio <MessageCircle size={17} /></a>
           </div>
         </section>
 
@@ -465,18 +475,43 @@ function App() {
           </div>
         </section>
 
+        <section className="faq-section section-pad" id="preguntas">
+          <div className="section-kicker dark-kicker">
+            <span>06</span><span>PREGUNTAS FRECUENTES</span><span className="kicker-rule" />
+            <span className="kicker-side">ANTES DE ESCRIBIR</span>
+          </div>
+          <div className="faq-layout">
+            <div className="faq-heading">
+              <h2>ANTES DE<br /><span>EMPEZAR.</span></h2>
+              <p>Queremos que sepas cómo trabajamos y qué puedes esperar antes de dar el siguiente paso.</p>
+            </div>
+            <div className="faq-list">
+              {faqs.map((item, index) => (
+                <details className="faq-item" key={item.question}>
+                  <summary>
+                    <span className="faq-number">0{index + 1}</span>
+                    <span className="faq-question">{item.question}</span>
+                    <span className="faq-toggle" aria-hidden="true">+</span>
+                  </summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="cta-section">
           <div className="cta-grid" aria-hidden="true" />
           <div className="cta-shard" aria-hidden="true" />
           <div className="cta-content">
             <div className="section-kicker light-kicker">
-              <span>06</span><span>EL SIGUIENTE MOVIMIENTO</span><span className="kicker-rule" />
+              <span>07</span><span>EL SIGUIENTE MOVIMIENTO</span><span className="kicker-rule" />
             </div>
             <p className="cta-overline">TU ESTUDIO YA TIENE LA ENERGÍA.</p>
             <h2>HAGAMOS QUE<br /><span>SE NOTE.</span></h2>
-            <p className="cta-description">Cuéntanos qué estás construyendo. En una primera llamada podemos identificar dónde está la oportunidad para tu marca.</p>
-            <a className="button button-primary cta-button" href={bookingHref} target={bookingUrl ? "_blank" : undefined} rel={bookingUrl ? "noreferrer" : undefined}>
-              Agenda una llamada de diagnóstico <ArrowUpRight size={18} />
+            <p className="cta-description">Cuéntanos por WhatsApp qué estás construyendo. Podemos conversar sobre tu estudio y coordinar una llamada si necesitas un diagnóstico más profundo.</p>
+            <a className="button button-primary cta-button" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>
+              Escríbenos por WhatsApp <MessageCircle size={18} />
             </a>
           </div>
           <div className="cta-side-label">THE HEAT / CREATIVE STUDIO</div>
@@ -485,10 +520,10 @@ function App() {
         <section className="contact-section section-pad" id="contacto">
           <div className="contact-intro">
             <div className="section-kicker dark-kicker">
-              <span>07</span><span>HABLEMOS</span><span className="kicker-rule" />
+              <span>08</span><span>HABLEMOS</span><span className="kicker-rule" />
             </div>
             <h2>CUÉNTANOS<br />DE TU <span>ESTUDIO.</span></h2>
-            <p>Déjanos tus datos y un poco de contexto. Queremos conocer tu proyecto antes de proponerte una solución.</p>
+            <p>¿Prefieres presentarte primero? Completa estos datos y abriremos WhatsApp con el mensaje listo para que tú lo envíes.</p>
             <div className="contact-location"><MapPin size={17} /><span>Aguascalientes, México</span></div>
             <div className="contact-direct">
               <span className="contact-direct-line" />
@@ -498,8 +533,8 @@ function App() {
 
           <form className="contact-form" onSubmit={handleSubmit}>
             <div className="form-heading">
-              <span>FORMULARIO / 01</span>
-              <span>RESPUESTA PERSONALIZADA</span>
+              <span>MENSAJE / WHATSAPP</span>
+              <span>TÚ CONFIRMAS EL ENVÍO</span>
             </div>
             <div className="form-row">
               <label>
@@ -509,16 +544,6 @@ function App() {
               <label>
                 <span>Nombre de tu estudio *</span>
                 <input name="studio" type="text" placeholder="¿Cómo se llama tu negocio?" required />
-              </label>
-            </div>
-            <div className="form-row">
-              <label>
-                <span>WhatsApp *</span>
-                <input name="phone" type="tel" placeholder="449 000 0000" required />
-              </label>
-              <label>
-                <span>Correo electrónico *</span>
-                <input name="email" type="email" placeholder="tu@correo.com" required />
               </label>
             </div>
             <label>
@@ -537,9 +562,10 @@ function App() {
               <textarea name="message" rows={4} placeholder="¿Qué te gustaría mejorar o conseguir con tu marca?" />
             </label>
             <div className="form-footer">
-              <p>Al enviar, aceptas que usemos tus datos únicamente para dar seguimiento a esta solicitud.</p>
-              <button className="button button-dark" type="submit">Solicitar llamada <ArrowUpRight size={17} /></button>
+              <p>Se abrirá WhatsApp con un mensaje preparado. No se envía nada hasta que presiones Enviar en la conversación.</p>
+              <button className="button button-dark" type="submit">Continuar en WhatsApp <MessageCircle size={17} /></button>
             </div>
+            {!whatsappNumber && <p className="form-status" role="status">Contacto por WhatsApp pendiente de activación: falta configurar el número comercial.</p>}
             {formStatus && <p className="form-status" role="status">{formStatus}</p>}
           </form>
         </section>
@@ -556,10 +582,11 @@ function App() {
             <a href="#servicios">Servicios</a>
             <a href="#proyectos">Proyectos</a>
             <a href="#proceso">Proceso</a>
+            <a href="#preguntas">Preguntas frecuentes</a>
           </div>
           <div className="footer-column">
             <span>HABLEMOS</span>
-            <a href="#contacto">Agenda una llamada</a>
+            <a href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>Escríbenos por WhatsApp</a>
             <p>Aguascalientes, México</p>
           </div>
           <div className="footer-signoff">
