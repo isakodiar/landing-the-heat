@@ -397,7 +397,9 @@ video {
   height: min(530px, 48vw);
   min-height: 430px;
   overflow: hidden;
-  background: #30363d;
+  background-color: #30363d;
+  background-position: center 26%;
+  background-size: cover;
   border-radius: 2px;
 }
 
