@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import {
   ArrowDown,
-  ArrowRight,
   ArrowUpRight,
   Camera,
   Check,
@@ -14,7 +13,6 @@ import {
   Play,
   Sparkles,
   Target,
-  Video,
   X,
 } from "lucide-react";
 
