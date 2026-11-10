@@ -214,8 +214,8 @@ function App() {
     ].join("\n");
 
     if (whatsappNumber) {
-      window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
-      setFormStatus("Se abrió WhatsApp con tu solicitud preparada. Solo falta enviarla.");
+      const whatsappWindow = window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+      setFormStatus(whatsappWindow ? "Se abrió WhatsApp con tu solicitud preparada. Solo falta enviarla." : "Tu navegador bloqueó la ventana de WhatsApp. Permite las ventanas emergentes o utiliza otro medio de contacto.");
       return;
     }
 
@@ -291,7 +291,7 @@ function App() {
             </div>
 
             <div className="hero-visual">
-              <div className="hero-video-frame">
+              <div className="hero-video-frame" style={{ backgroundImage: `url(${projects[0].poster})` }}>
                 <video
                   className="hero-video"
                   autoPlay
