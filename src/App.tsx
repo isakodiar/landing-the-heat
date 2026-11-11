@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowDown,
   ArrowLeft,
@@ -23,6 +23,7 @@ type Project = {
   discipline: string;
   service: string;
   video: string;
+  preview: string;
   poster: string;
   offset: string;
 };
@@ -33,6 +34,7 @@ const projects: Project[] = [
     discipline: "Parkour · Academia",
     service: "Producción audiovisual",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329742/the-heat-landing/parkour-evo.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/so_4,du_8,q_auto,w_480/v1794329742/the-heat-landing/parkour-evo.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_6,w_900,f_jpg/v1794329742/the-heat-landing/parkour-evo.jpg",
     offset: "01",
   },
@@ -41,6 +43,7 @@ const projects: Project[] = [
     discipline: "Pilates · Estudio",
     service: "Contenido para redes",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329750/the-heat-landing/pilates-mat.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/so_15,du_8,q_auto,w_480/v1794329750/the-heat-landing/pilates-mat.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_42,w_900,f_jpg/v1794329750/the-heat-landing/pilates-mat.jpg",
     offset: "02",
   },
@@ -49,6 +52,7 @@ const projects: Project[] = [
     discipline: "Yoga · Comunidad",
     service: "Cobertura audiovisual",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329756/the-heat-landing/yoga-sabinal.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/so_8,du_8,q_auto,w_480/v1794329756/the-heat-landing/yoga-sabinal.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_30,w_900,f_jpg/v1794329756/the-heat-landing/yoga-sabinal.jpg",
     offset: "03",
   },
@@ -57,6 +61,7 @@ const projects: Project[] = [
     discipline: "Box · Entrenamiento",
     service: "Producción audiovisual",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329762/the-heat-landing/academia-box.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/so_6,du_8,q_auto,w_480/v1794329762/the-heat-landing/academia-box.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_12,w_900,f_jpg/v1794329762/the-heat-landing/academia-box.jpg",
     offset: "04",
   },
@@ -153,33 +158,79 @@ const faqs = [
 ];
 
 function ProjectCard({ project }: { project: Project }) {
-  const [playing, setPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Muted previews start automatically when actually visible; offscreen clips are paused.
+    // This keeps the landing responsive without downloading four full productions at once.
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) return;
+
+    let isVisible = false;
+    const syncPlayback = () => {
+      if (isVisible && !document.hidden) {
+        void video.play().catch(() => {
+          // Some devices block automatic playback; the poster and full-video link remain available.
+        });
+      } else {
+        video.pause();
+      }
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      isVisible = true;
+      syncPlayback();
+      document.addEventListener("visibilitychange", syncPlayback);
+      return () => {
+        document.removeEventListener("visibilitychange", syncPlayback);
+        video.pause();
+      };
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        syncPlayback();
+      },
+      { threshold: 0.23 },
+    );
+    observer.observe(video);
+    document.addEventListener("visibilitychange", syncPlayback);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", syncPlayback);
+      video.pause();
+    };
+  }, []);
 
   return (
-    <article className={`project-card ${playing ? "is-playing" : ""}`}>
+    <article className="project-card">
       <div className="project-media">
-        {playing ? (
-          <video
-            className="project-video"
-            src={project.video}
-            poster={project.poster}
-            controls
-            autoPlay
-            playsInline
-            preload="metadata"
-          />
-        ) : (
-          <button
-            className="project-poster"
-            type="button"
-            onClick={() => setPlaying(true)}
-            aria-label={`Reproducir proyecto ${project.title}`}
-          >
-            <img src={project.poster} alt={`Producción audiovisual para ${project.title}`} loading="lazy" />
-            <span className="project-play"><Play size={18} fill="currentColor" /></span>
-            <span className="project-poster-label">VER PIEZA</span>
-          </button>
-        )}
+        <video
+          ref={videoRef}
+          className="project-video project-preview"
+          muted
+          playsInline
+          loop
+          preload="none"
+          poster={project.poster}
+          aria-label={`Vista previa en movimiento de ${project.title}, sin sonido`}
+        >
+          <source src={project.preview} type="video/mp4" />
+        </video>
+        <a
+          className="project-watch"
+          href={project.video}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Ver video completo de ${project.title} en una nueva pestaña`}
+        >
+          <Play size={14} fill="currentColor" /> VER VIDEO COMPLETO <ArrowUpRight size={14} />
+        </a>
         <span className="project-index">{project.offset}</span>
       </div>
       <div className="project-meta">
@@ -198,6 +249,7 @@ function App() {
   const [formStatus, setFormStatus] = useState("");
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [carouselAtEnd, setCarouselAtEnd] = useState(false);
+  const [carouselPaused, setCarouselPaused] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   // WhatsApp comercial confirmado: +52 449 468 5875.
   // Es un número de contacto público. Se puede cambiar desde la variable del hosting.
@@ -209,6 +261,66 @@ function App() {
     : "#contacto";
 
   const closeMenu = () => setMenuOpen(false);
+
+  // Automatic carousel movement while the gallery is visible. Pauses for interaction,
+  // background tabs, and visitors who request reduced motion.
+  useEffect(() => {
+    const track = carouselRef.current;
+    if (!track || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let isOnScreen = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => { isOnScreen = entry.isIntersecting; },
+      { threshold: 0.16 },
+    );
+    observer.observe(track);
+
+    const interval = window.setInterval(() => {
+      if (!isOnScreen || document.hidden || carouselPaused) return;
+      const card = track.querySelector<HTMLElement>(".project-card");
+      if (!card) return;
+      const gap = Number.parseFloat(window.getComputedStyle(track).columnGap) || 18;
+      const step = card.getBoundingClientRect().width + gap;
+      const max = track.scrollWidth - track.clientWidth;
+      if (max <= 5) return;
+      if (track.scrollLeft >= max - 5) {
+        track.scrollTo({ left: 0, behavior: "auto" });
+      } else {
+        track.scrollBy({ left: Math.min(step, max - track.scrollLeft), behavior: "smooth" });
+      }
+    }, 5200);
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(interval);
+    };
+  }, [carouselPaused]);
+
+  // Reveal the sections only when they enter the viewport.
+  // Content remains fully visible for browsers without IntersectionObserver.
+  useEffect(() => {
+    if (!("IntersectionObserver" in window) ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const sections = Array.from(document.querySelectorAll<HTMLElement>("main > section:not(.hero-section)"));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-revealed");
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -35px 0px" },
+    );
+    sections.forEach((section) => {
+      section.classList.add("section-reveal");
+      observer.observe(section);
+    });
+    return () => observer.disconnect();
+  }, []);
+
 
   function moveCarousel(direction: -1 | 1) {
     const track = carouselRef.current;
@@ -287,9 +399,9 @@ function App() {
         <section className="hero-section hero-v2" id="inicio">
           {/* Video ocupa el 100% del viewport; se recorta a formato horizontal con object-fit: cover.
               La tipografía, navegación y formulario permanecen superpuestos sobre el video. */}
-          <div className="hero-video-stage" aria-hidden="true" style={{ backgroundImage: `url(${projects[0].poster})` }}>
-            <video className="hero-background-video" autoPlay muted loop playsInline preload="metadata" poster={projects[0].poster}>
-              <source src="https://res.cloudinary.com/jfum298a/video/upload/du_16,q_auto,so_6,w_1280/v1794329742/the-heat-landing/parkour-evo.mp4" type="video/mp4" />
+          <div className="hero-video-stage" aria-hidden="true" style={{ backgroundImage: `url(${projects[2].poster})` }}>
+            <video className="hero-background-video" autoPlay muted loop playsInline preload="metadata" poster={projects[2].poster}>
+              <source src="https://res.cloudinary.com/jfum298a/video/upload/so_5,du_18,q_auto,w_1024/v1794329756/the-heat-landing/yoga-sabinal.mp4" type="video/mp4" />
             </video>
           </div>
           <div className="hero-film-overlay" aria-hidden="true" />
@@ -434,12 +546,12 @@ function App() {
             <h2>EL MOVIMIENTO<br /><span>SE DEMUESTRA.</span></h2>
             <p>Una selección de piezas audiovisuales realizadas en espacios y disciplinas deportivas. Dale play para ver cada proyecto.</p>
           </div>
-          <div className="projects-carousel" aria-label="Carrusel de videos de THE HEAT">
-            <div className="projects-grid" ref={carouselRef} onScroll={handleCarouselScroll} role="region" aria-roledescription="carrusel" aria-label="Proyectos audiovisuales, desliza horizontalmente">
+          <div className="projects-carousel" aria-label="Carrusel de videos de THE HEAT" onMouseEnter={() => setCarouselPaused(true)} onMouseLeave={() => setCarouselPaused(false)} onFocusCapture={() => setCarouselPaused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setCarouselPaused(false); }} onTouchStart={() => setCarouselPaused(true)} onTouchEnd={() => setCarouselPaused(false)}>
+            <div className="projects-grid" ref={carouselRef} onScroll={handleCarouselScroll} role="region" aria-roledescription="carrusel" aria-label="Videos en reproducción automática sin sonido; desliza horizontalmente o usa las flechas">
               {projects.map((project) => <ProjectCard key={project.offset} project={project} />)}
             </div>
             <div className="carousel-toolbar">
-              <div className="carousel-position" aria-live="polite"><strong>{String(carouselIndex + 1).padStart(2, "0")}</strong><span> / {String(projects.length).padStart(2, "0")}</span></div>
+              <div className="carousel-position" aria-live="off"><strong>{String(carouselIndex + 1).padStart(2, "0")}</strong><span> / {String(projects.length).padStart(2, "0")}</span><span className="carousel-play-hint"> · REPRODUCCIÓN AUTOMÁTICA / SIN AUDIO</span></div>
               <div className="carousel-controls">
                 <button type="button" onClick={() => moveCarousel(-1)} disabled={carouselIndex === 0} aria-label="Proyecto anterior"><ArrowLeft size={19}/></button>
                 <button type="button" onClick={() => moveCarousel(1)} disabled={carouselAtEnd} aria-label="Proyecto siguiente"><ArrowRight size={19}/></button>
@@ -493,7 +605,7 @@ function App() {
 
         <section className="fit-section">
           <div className="fit-image">
-            <img src={projects[2].poster} alt="Sesión de yoga al aire libre" loading="lazy" />
+            <img src="https://res.cloudinary.com/jfum298a/image/upload/f_auto,q_auto,w_1200/v1794356523/para-quien-galli.png" alt="Atleta entrenando sobre un minitrampolín, fotografía FOTOS GALLI" loading="lazy" />
             <div className="fit-image-overlay" />
             <span className="fit-image-caption">MOVIMIENTO / COMUNIDAD / EXPERIENCIA</span>
           </div>
