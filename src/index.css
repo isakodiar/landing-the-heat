@@ -2814,7 +2814,7 @@ video {
     position: absolute;
     z-index: 0;
     inset: 0;
-    background: url("https://res.cloudinary.com/jfum298a/video/upload/so_6,w_1440,f_jpg/v1794329742/the-heat-landing/parkour-evo.jpg") center / cover no-repeat;
+    background: url("https://res.cloudinary.com/jfum298a/video/upload/so_30,w_1440,f_jpg/v1794329756/the-heat-landing/yoga-sabinal.jpg") center / cover no-repeat;
     content: "";
   }
 }
@@ -3020,5 +3020,144 @@ video {
   }
   .hero-v2 .hero-bottomline {
     padding-bottom: 16px;
+  }
+}
+
+
+/* V2.2 / Always-moving work previews + intentional entrances */
+.projects-carousel .project-preview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--ink);
+  filter: saturate(1.06);
+}
+
+.projects-carousel .project-media::after {
+  position: absolute;
+  z-index: 1;
+  inset: 30% 0 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.64) 100%);
+  content: "";
+  pointer-events: none;
+}
+
+.projects-carousel .project-watch {
+  position: absolute;
+  z-index: 4;
+  right: 16px;
+  bottom: 17px;
+  left: 16px;
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid rgba(255,255,255,.6);
+  border-radius: 4px;
+  background: rgba(0,0,0,.46);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-align: center;
+  backdrop-filter: blur(9px);
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.projects-carousel .project-watch:hover,
+.projects-carousel .project-watch:focus-visible {
+  background: var(--pink);
+  color: #101114;
+  transform: translateY(-3px);
+}
+
+.carousel-play-hint {
+  margin-left: 12px;
+  color: var(--teal-deep);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+
+.fit-section .fit-image img {
+  object-position: center 44%;
+  filter: none;
+}
+
+/* Content appears gently as each section is reached; never hides content
+   when JS is disabled or when reduced motion is requested. */
+@media (prefers-reduced-motion: no-preference) {
+  .section-reveal > * {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+    transition:
+      opacity 720ms cubic-bezier(.2,.7,.25,1),
+      transform 720ms cubic-bezier(.2,.7,.25,1);
+  }
+
+  .section-reveal.is-revealed > * {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .section-reveal > :nth-child(2) { transition-delay: 110ms; }
+  .section-reveal > :nth-child(3) { transition-delay: 200ms; }
+  .section-reveal > :nth-child(4) { transition-delay: 270ms; }
+  .section-reveal > :nth-child(5) { transition-delay: 330ms; }
+
+  @keyframes heatHeroEnter {
+    from { opacity: 0; transform: translate3d(0, 30px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  .hero-v2 .hero-copy > * {
+    animation: heatHeroEnter 820ms cubic-bezier(.16,1,.3,1) both;
+  }
+
+  .hero-v2 .hero-copy > :nth-child(2) { animation-delay: 120ms; }
+  .hero-v2 .hero-copy > :nth-child(3) { animation-delay: 240ms; }
+  .hero-v2 .hero-copy > :nth-child(4) { animation-delay: 330ms; }
+  .hero-v2 .hero-copy > :nth-child(5) { animation-delay: 420ms; }
+
+  .hero-v2 .hero-lead-form {
+    animation: heatHeroEnter 900ms cubic-bezier(.16,1,.3,1) 320ms both;
+  }
+}
+
+@media (max-width: 560px) {
+  .carousel-play-hint {
+    display: block;
+    margin: -1px 0 0;
+    font-size: 8px;
+    letter-spacing: .05em;
+  }
+
+  .projects-carousel .project-watch {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-reveal > *,
+  .section-reveal.is-revealed > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .hero-v2 .hero-copy > *,
+  .hero-v2 .hero-lead-form {
+    animation: none !important;
+  }
+
+  .projects-carousel .project-preview {
+    display: block;
+    background: var(--ink);
   }
 }
