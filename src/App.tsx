@@ -34,7 +34,7 @@ const projects: Project[] = [
     discipline: "Parkour · Academia",
     service: "Producción audiovisual",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329742/the-heat-landing/parkour-evo.mp4",
-    preview: "https://res.cloudinary.com/jfum298a/video/upload/so_4,du_8,q_auto,w_480/v1794329742/the-heat-landing/parkour-evo.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/du_8,q_auto,so_4,w_480/v1794329742/the-heat-landing/parkour-evo.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_6,w_900,f_jpg/v1794329742/the-heat-landing/parkour-evo.jpg",
     offset: "01",
   },
@@ -43,7 +43,7 @@ const projects: Project[] = [
     discipline: "Pilates · Estudio",
     service: "Contenido para redes",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329750/the-heat-landing/pilates-mat.mp4",
-    preview: "https://res.cloudinary.com/jfum298a/video/upload/so_15,du_8,q_auto,w_480/v1794329750/the-heat-landing/pilates-mat.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/du_8,q_auto,so_15,w_480/v1794329750/the-heat-landing/pilates-mat.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_42,w_900,f_jpg/v1794329750/the-heat-landing/pilates-mat.jpg",
     offset: "02",
   },
@@ -52,7 +52,7 @@ const projects: Project[] = [
     discipline: "Yoga · Comunidad",
     service: "Cobertura audiovisual",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329756/the-heat-landing/yoga-sabinal.mp4",
-    preview: "https://res.cloudinary.com/jfum298a/video/upload/so_8,du_8,q_auto,w_480/v1794329756/the-heat-landing/yoga-sabinal.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/du_8,q_auto,so_8,w_480/v1794329756/the-heat-landing/yoga-sabinal.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_30,w_900,f_jpg/v1794329756/the-heat-landing/yoga-sabinal.jpg",
     offset: "03",
   },
@@ -61,7 +61,7 @@ const projects: Project[] = [
     discipline: "Box · Entrenamiento",
     service: "Producción audiovisual",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329762/the-heat-landing/academia-box.mp4",
-    preview: "https://res.cloudinary.com/jfum298a/video/upload/so_6,du_8,q_auto,w_480/v1794329762/the-heat-landing/academia-box.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/du_8,q_auto,so_6,w_480/v1794329762/the-heat-landing/academia-box.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_12,w_900,f_jpg/v1794329762/the-heat-landing/academia-box.jpg",
     offset: "04",
   },
@@ -401,7 +401,7 @@ function App() {
               La tipografía, navegación y formulario permanecen superpuestos sobre el video. */}
           <div className="hero-video-stage" aria-hidden="true" style={{ backgroundImage: `url(${projects[2].poster})` }}>
             <video className="hero-background-video" autoPlay muted loop playsInline preload="metadata" poster={projects[2].poster}>
-              <source src="https://res.cloudinary.com/jfum298a/video/upload/so_5,du_18,q_auto,w_1024/v1794329756/the-heat-landing/yoga-sabinal.mp4" type="video/mp4" />
+              <source src="https://res.cloudinary.com/jfum298a/video/upload/du_18,q_auto,so_5,w_1024/v1794329756/the-heat-landing/yoga-sabinal.mp4" type="video/mp4" />
             </video>
           </div>
           <div className="hero-film-overlay" aria-hidden="true" />
@@ -605,7 +605,7 @@ function App() {
 
         <section className="fit-section">
           <div className="fit-image">
-            <img src="https://res.cloudinary.com/jfum298a/image/upload/f_auto,q_auto,w_1200/v1794356523/para-quien-galli.png" alt="Atleta entrenando sobre un minitrampolín, fotografía FOTOS GALLI" loading="lazy" />
+            <img src="https://res.cloudinary.com/jfum298a/image/upload/c_limit,w_1200/f_auto/q_auto/v1794356523/para-quien-galli.png" alt="Atleta entrenando sobre un minitrampolín, fotografía FOTOS GALLI" loading="lazy" />
             <div className="fit-image-overlay" />
             <span className="fit-image-caption">MOVIMIENTO / COMUNIDAD / EXPERIENCIA</span>
           </div>
