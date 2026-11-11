@@ -1,6 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   ArrowUpRight,
   Camera,
   Check,
@@ -21,6 +23,7 @@ type Project = {
   discipline: string;
   service: string;
   video: string;
+  preview: string;
   poster: string;
   offset: string;
 };
@@ -31,6 +34,7 @@ const projects: Project[] = [
     discipline: "Parkour · Academia",
     service: "Producción audiovisual",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329742/the-heat-landing/parkour-evo.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/du_8,q_auto,so_4,w_480/v1794329742/the-heat-landing/parkour-evo.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_6,w_900,f_jpg/v1794329742/the-heat-landing/parkour-evo.jpg",
     offset: "01",
   },
@@ -39,6 +43,7 @@ const projects: Project[] = [
     discipline: "Pilates · Estudio",
     service: "Contenido para redes",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329750/the-heat-landing/pilates-mat.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/du_8,q_auto,so_15,w_480/v1794329750/the-heat-landing/pilates-mat.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_42,w_900,f_jpg/v1794329750/the-heat-landing/pilates-mat.jpg",
     offset: "02",
   },
@@ -47,6 +52,7 @@ const projects: Project[] = [
     discipline: "Yoga · Comunidad",
     service: "Cobertura audiovisual",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329756/the-heat-landing/yoga-sabinal.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/du_8,q_auto,so_8,w_480/v1794329756/the-heat-landing/yoga-sabinal.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_30,w_900,f_jpg/v1794329756/the-heat-landing/yoga-sabinal.jpg",
     offset: "03",
   },
@@ -55,6 +61,7 @@ const projects: Project[] = [
     discipline: "Box · Entrenamiento",
     service: "Producción audiovisual",
     video: "https://res.cloudinary.com/jfum298a/video/upload/q_auto,w_720/v1794329762/the-heat-landing/academia-box.mp4",
+    preview: "https://res.cloudinary.com/jfum298a/video/upload/du_8,q_auto,so_6,w_480/v1794329762/the-heat-landing/academia-box.mp4",
     poster: "https://res.cloudinary.com/jfum298a/video/upload/so_12,w_900,f_jpg/v1794329762/the-heat-landing/academia-box.jpg",
     offset: "04",
   },
@@ -151,33 +158,79 @@ const faqs = [
 ];
 
 function ProjectCard({ project }: { project: Project }) {
-  const [playing, setPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Muted previews start automatically when actually visible; offscreen clips are paused.
+    // This keeps the landing responsive without downloading four full productions at once.
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) return;
+
+    let isVisible = false;
+    const syncPlayback = () => {
+      if (isVisible && !document.hidden) {
+        void video.play().catch(() => {
+          // Some devices block automatic playback; the poster and full-video link remain available.
+        });
+      } else {
+        video.pause();
+      }
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      isVisible = true;
+      syncPlayback();
+      document.addEventListener("visibilitychange", syncPlayback);
+      return () => {
+        document.removeEventListener("visibilitychange", syncPlayback);
+        video.pause();
+      };
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        syncPlayback();
+      },
+      { threshold: 0.23 },
+    );
+    observer.observe(video);
+    document.addEventListener("visibilitychange", syncPlayback);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", syncPlayback);
+      video.pause();
+    };
+  }, []);
 
   return (
-    <article className={`project-card ${playing ? "is-playing" : ""}`}>
+    <article className="project-card">
       <div className="project-media">
-        {playing ? (
-          <video
-            className="project-video"
-            src={project.video}
-            poster={project.poster}
-            controls
-            autoPlay
-            playsInline
-            preload="metadata"
-          />
-        ) : (
-          <button
-            className="project-poster"
-            type="button"
-            onClick={() => setPlaying(true)}
-            aria-label={`Reproducir proyecto ${project.title}`}
-          >
-            <img src={project.poster} alt={`Producción audiovisual para ${project.title}`} loading="lazy" />
-            <span className="project-play"><Play size={18} fill="currentColor" /></span>
-            <span className="project-poster-label">VER PIEZA</span>
-          </button>
-        )}
+        <video
+          ref={videoRef}
+          className="project-video project-preview"
+          muted
+          playsInline
+          loop
+          preload="none"
+          poster={project.poster}
+          aria-label={`Vista previa en movimiento de ${project.title}, sin sonido`}
+        >
+          <source src={project.preview} type="video/mp4" />
+        </video>
+        <a
+          className="project-watch"
+          href={project.video}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Ver video completo de ${project.title} en una nueva pestaña`}
+        >
+          <Play size={14} fill="currentColor" /> VER VIDEO COMPLETO <ArrowUpRight size={14} />
+        </a>
         <span className="project-index">{project.offset}</span>
       </div>
       <div className="project-meta">
@@ -194,6 +247,10 @@ function ProjectCard({ project }: { project: Project }) {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState("");
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [carouselAtEnd, setCarouselAtEnd] = useState(false);
+  const [carouselPaused, setCarouselPaused] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
   // WhatsApp comercial confirmado: +52 449 468 5875.
   // Es un número de contacto público. Se puede cambiar desde la variable del hosting.
   const rawWhatsappNumber = (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined)?.replace(/\D/g, "") || "524494685875";
@@ -204,6 +261,88 @@ function App() {
     : "#contacto";
 
   const closeMenu = () => setMenuOpen(false);
+
+  // Automatic carousel movement while the gallery is visible. Pauses for interaction,
+  // background tabs, and visitors who request reduced motion.
+  useEffect(() => {
+    const track = carouselRef.current;
+    if (!track || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let isOnScreen = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => { isOnScreen = entry.isIntersecting; },
+      { threshold: 0.16 },
+    );
+    observer.observe(track);
+
+    const interval = window.setInterval(() => {
+      if (!isOnScreen || document.hidden || carouselPaused) return;
+      const card = track.querySelector<HTMLElement>(".project-card");
+      if (!card) return;
+      const gap = Number.parseFloat(window.getComputedStyle(track).columnGap) || 18;
+      const step = card.getBoundingClientRect().width + gap;
+      const max = track.scrollWidth - track.clientWidth;
+      if (max <= 5) return;
+      if (track.scrollLeft >= max - 5) {
+        track.scrollTo({ left: 0, behavior: "auto" });
+      } else {
+        track.scrollBy({ left: Math.min(step, max - track.scrollLeft), behavior: "smooth" });
+      }
+    }, 5200);
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(interval);
+    };
+  }, [carouselPaused]);
+
+  // Reveal the sections only when they enter the viewport.
+  // Content remains fully visible for browsers without IntersectionObserver.
+  useEffect(() => {
+    if (!("IntersectionObserver" in window) ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const sections = Array.from(document.querySelectorAll<HTMLElement>("main > section:not(.hero-section)"));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-revealed");
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -35px 0px" },
+    );
+    sections.forEach((section) => {
+      section.classList.add("section-reveal");
+      observer.observe(section);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+
+  function moveCarousel(direction: -1 | 1) {
+    const track = carouselRef.current;
+    const firstCard = track?.querySelector<HTMLElement>(".project-card");
+    if (!track || !firstCard) return;
+    const gap = Number.parseFloat(window.getComputedStyle(track).columnGap) || 18;
+    const step = firstCard.getBoundingClientRect().width + gap;
+    // Scroll based on current position so the final, partial carousel view remains reachable.
+    track.scrollBy({ left: direction * step, behavior: "smooth" });
+  }
+
+  function handleCarouselScroll() {
+    const track = carouselRef.current;
+    const firstCard = track?.querySelector<HTMLElement>(".project-card");
+    if (!track || !firstCard) return;
+    const gap = Number.parseFloat(window.getComputedStyle(track).columnGap) || 18;
+    const step = firstCard.getBoundingClientRect().width + gap;
+    if (!step) return;
+    const atEnd = track.scrollWidth - track.clientWidth - track.scrollLeft <= 5;
+    setCarouselAtEnd(atEnd);
+    setCarouselIndex(atEnd ? projects.length - 1 : Math.max(0, Math.min(projects.length - 1, Math.round(track.scrollLeft / step))));
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -257,79 +396,79 @@ function App() {
       </header>
 
       <main>
-        <section className="hero-section" id="inicio">
-          <div className="hero-grid" aria-hidden="true" />
-          <div className="hero-shard hero-shard-one" aria-hidden="true" />
-          <div className="hero-shard hero-shard-two" aria-hidden="true" />
+        <section className="hero-section hero-v2" id="inicio">
+          {/* Video ocupa el 100% del viewport; se recorta a formato horizontal con object-fit: cover.
+              La tipografía, navegación y formulario permanecen superpuestos sobre el video. */}
+          <div className="hero-video-stage" aria-hidden="true" style={{ backgroundImage: `url(${projects[2].poster})` }}>
+            <video className="hero-background-video" autoPlay muted loop playsInline preload="metadata" poster={projects[2].poster}>
+              <source src="https://res.cloudinary.com/jfum298a/video/upload/du_18,q_auto,so_5,w_1024/v1794329756/the-heat-landing/yoga-sabinal.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <div className="hero-film-overlay" aria-hidden="true" />
           <div className="hero-topline">
-            <span>ESTUDIO CREATIVO / AGUASCALIENTES, MX</span>
-            <span className="hero-topline-right"><span className="live-dot" /> ESTRATEGIA · BRANDING · VIDEO</span>
+            <span>THE HEAT / CREATIVE STUDIO</span>
+            <span className="hero-topline-right"><span className="live-dot" /> AGUASCALIENTES · MÉXICO</span>
           </div>
 
           <div className="hero-content">
             <div className="hero-copy">
-              <p className="eyebrow"><span className="eyebrow-line" /> PARA ESTUDIOS FITNESS CON ALGO QUE DECIR</p>
+              <p className="eyebrow"><span className="eyebrow-line" /> MARCAS QUE SE MUEVEN. IDEAS QUE DESTACAN.</p>
               <h1>
-                TU ESTUDIO
-                <span className="hero-title-accent">NO ES UNO MÁS.</span>
+                TU ESTUDIO<br />
+                NO ES <span className="hero-title-accent">UNO MÁS.</span>
               </h1>
               <p className="hero-description">
-                Construimos marcas, contenido y experiencias audiovisuales para que tu estudio destaque por lo que realmente lo hace diferente.
+                Branding, redes sociales y producción audiovisual para que tu estudio fitness comunique lo que lo hace diferente.
               </p>
               <div className="hero-actions">
-                <a className="button button-primary" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>
-                  Hablar por WhatsApp <MessageCircle size={18} />
-                </a>
-                <a className="button button-ghost" href="#proyectos">
-                  Explora nuestro trabajo <ArrowDown size={16} />
-                </a>
+                <a className="button button-ghost" href="#proyectos">Conoce nuestro trabajo <ArrowDown size={16} /></a>
               </div>
-              <div className="hero-footnote">
-                <span>01 / 03</span>
-                <span>NO SOLO CREAR. DAR DIRECCIÓN.</span>
-              </div>
+              <div className="hero-footnote"><span>ESTRATEGIA + PRODUCCIÓN</span><span>HECHO PARA EL MOVIMIENTO.</span></div>
             </div>
 
-            <div className="hero-visual">
-              <div className="hero-video-frame" style={{ backgroundImage: `url(${projects[0].poster})` }}>
-                <video
-                  className="hero-video"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  poster={projects[0].poster}
-                  preload="metadata"
-                >
-                  <source src="https://res.cloudinary.com/jfum298a/video/upload/du_16,q_auto,so_6,w_720/v1794329742/the-heat-landing/parkour-evo.mp4" type="video/mp4" />
-                </video>
-                <div className="hero-video-shade" />
-                <div className="hero-visual-top">
-                  <span>THE HEAT / VISUAL STORIES</span>
-                  <span>AGUASCALIENTES</span>
-                </div>
-                <div className="hero-visual-bottom">
-                  <div>
-                    <span className="hero-visual-kicker">MOVIMIENTO REAL</span>
-                    <p>Historias que<br />se sienten.</p>
-                  </div>
-                  <span className="hero-visual-mark"><img src="/the-heat-mark.svg" alt="" /></span>
-                </div>
-              </div>
-              <div className="hero-side-note">STUDIO CULTURE / 2026</div>
-              <div className="hero-stamp"><span>BUILT</span><span>TO</span><span>MOVE</span></div>
-            </div>
+            <form className="contact-form hero-lead-form" onSubmit={handleSubmit} aria-label="Escríbenos por WhatsApp desde el inicio">
+              <div className="hero-form-overline"><span className="live-dot" /> CONECTEMOS TU MARCA CON MÁS PERSONAS</div>
+              <h2>HABLEMOS DE<br /><span>TU ESTUDIO.</span></h2>
+              <p className="hero-form-intro">Déjanos algunos datos y abre una conversación directa con THE HEAT en WhatsApp.</p>
+              <label>
+                <span>Tu nombre *</span>
+                <input name="name" type="text" placeholder="¿Cómo te llamas?" autoComplete="name" required />
+              </label>
+              <label>
+                <span>Nombre de tu estudio *</span>
+                <input name="studio" type="text" placeholder="Nombre de tu marca" autoComplete="organization" required />
+              </label>
+              <label>
+                <span>¿Qué necesitas trabajar? *</span>
+                <select name="service" defaultValue="" required>
+                  <option value="" disabled>Selecciona un servicio</option>
+                  <option value="Branding">Branding</option>
+                  <option value="Gestión de redes sociales">Manejo de redes sociales</option>
+                  <option value="Producción audiovisual">Producción audiovisual</option>
+                  <option value="Solución integral">Todo lo anterior</option>
+                  <option value="Aún no lo tengo claro">Necesito orientación</option>
+                </select>
+              </label>
+              <label className="hero-message-field">
+                <span>¿Qué te gustaría mejorar?</span>
+                <textarea name="message" rows={2} placeholder="Cuéntanos brevemente (opcional)" />
+              </label>
+              <button className="button button-primary hero-form-submit" type="submit">Enviar a WhatsApp <MessageCircle size={17} /></button>
+              <p className="hero-form-privacy">Revisarás el mensaje antes de enviarlo. No enviamos tus datos automáticamente.</p>
+              {!whatsappNumber && <p className="form-status" role="status">Contacto temporalmente no disponible.</p>}
+              {formStatus && <p className="form-status" role="status">{formStatus}</p>}
+            </form>
           </div>
 
           <div className="hero-bottomline">
             <span>01 — ESTRATEGIA</span>
             <span>02 — IDENTIDAD</span>
-            <span>03 — NARRATIVA AUDIOVISUAL</span>
-            <span className="scroll-cue">SCROLL TO EXPLORE <ArrowDown size={14} /></span>
+            <span>03 — CONTENIDO</span>
+            <a className="scroll-cue" href="#idea">DESLIZA PARA EXPLORAR <ArrowDown size={14} /></a>
           </div>
         </section>
 
-        <section className="manifesto-section section-pad">
+        <section className="manifesto-section section-pad" id="idea">
           <div className="section-kicker dark-kicker">
             <span>01</span><span>LA IDEA</span><span className="kicker-rule" />
           </div>
@@ -374,9 +513,60 @@ function App() {
           </div>
         </section>
 
+        <section className="process-section section-pad" id="proceso">
+          <div className="section-kicker dark-kicker">
+            <span>02</span><span>EL PROCESO</span><span className="kicker-rule" />
+            <span className="kicker-side">DE LA IDEA A LA ACCIÓN</span>
+          </div>
+          <div className="process-heading">
+            <h2>CLARIDAD ANTES<br /><span>DE CREAR.</span></h2>
+            <p>Antes de grabar o diseñar, entendemos qué necesita tu negocio y por qué. Así cada pieza tiene una razón de existir.</p>
+          </div>
+          <div className="process-grid">
+            {process.map((step) => {
+              const Icon = step.icon;
+              return (
+                <article className="process-step" key={step.number}>
+                  <div className="process-step-top"><span>{step.number}</span><Icon size={23} strokeWidth={1.5} /></div>
+                  <h3>{step.title}</h3>
+                  <p>{step.description}</p>
+                  <span className="process-step-line" />
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="work-section section-pad" id="proyectos">
+          <div className="section-kicker dark-kicker">
+            <span>03</span><span>TRABAJO EN MOVIMIENTO</span><span className="kicker-rule" />
+            <span className="kicker-side">MATERIAL REAL / PRODUCCIÓN THE HEAT</span>
+          </div>
+          <div className="work-heading">
+            <h2>EL MOVIMIENTO<br /><span>SE DEMUESTRA.</span></h2>
+            <p>Una selección de piezas audiovisuales realizadas en espacios y disciplinas deportivas. Dale play para ver cada proyecto.</p>
+          </div>
+          <div className="projects-carousel" aria-label="Carrusel de videos de THE HEAT" onMouseEnter={() => setCarouselPaused(true)} onMouseLeave={() => setCarouselPaused(false)} onFocusCapture={() => setCarouselPaused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setCarouselPaused(false); }} onTouchStart={() => setCarouselPaused(true)} onTouchEnd={() => setCarouselPaused(false)}>
+            <div className="projects-grid" ref={carouselRef} onScroll={handleCarouselScroll} role="region" aria-roledescription="carrusel" aria-label="Videos en reproducción automática sin sonido; desliza horizontalmente o usa las flechas">
+              {projects.map((project) => <ProjectCard key={project.offset} project={project} />)}
+            </div>
+            <div className="carousel-toolbar">
+              <div className="carousel-position" aria-live="off"><strong>{String(carouselIndex + 1).padStart(2, "0")}</strong><span> / {String(projects.length).padStart(2, "0")}</span><span className="carousel-play-hint"> · REPRODUCCIÓN AUTOMÁTICA / SIN AUDIO</span></div>
+              <div className="carousel-controls">
+                <button type="button" onClick={() => moveCarousel(-1)} disabled={carouselIndex === 0} aria-label="Proyecto anterior"><ArrowLeft size={19}/></button>
+                <button type="button" onClick={() => moveCarousel(1)} disabled={carouselAtEnd} aria-label="Proyecto siguiente"><ArrowRight size={19}/></button>
+              </div>
+            </div>
+          </div>
+          <div className="work-bottom">
+            <span>IMAGEN, RITMO Y NARRATIVA.</span>
+            <a className="text-link" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>Hagamos visible tu estudio <MessageCircle size={17} /></a>
+          </div>
+        </section>
+
         <section className="services-section section-pad" id="servicios">
           <div className="section-kicker light-kicker">
-            <span>02</span><span>LO QUE HACEMOS</span><span className="kicker-rule" />
+            <span>04</span><span>LO QUE HACEMOS</span><span className="kicker-rule" />
             <span className="kicker-side">TRES FRENTES / UNA MISMA DIRECCIÓN</span>
           </div>
           <div className="services-intro">
@@ -413,33 +603,15 @@ function App() {
           </div>
         </section>
 
-        <section className="work-section section-pad" id="proyectos">
-          <div className="section-kicker dark-kicker">
-            <span>03</span><span>TRABAJO EN MOVIMIENTO</span><span className="kicker-rule" />
-            <span className="kicker-side">MATERIAL REAL / PRODUCCIÓN THE HEAT</span>
-          </div>
-          <div className="work-heading">
-            <h2>EL MOVIMIENTO<br /><span>SE DEMUESTRA.</span></h2>
-            <p>Una selección de piezas audiovisuales realizadas en espacios y disciplinas deportivas. Dale play para ver cada proyecto.</p>
-          </div>
-          <div className="projects-grid">
-            {projects.map((project) => <ProjectCard key={project.offset} project={project} />)}
-          </div>
-          <div className="work-bottom">
-            <span>IMAGEN, RITMO Y NARRATIVA.</span>
-            <a className="text-link" href={whatsappHref} target={whatsappNumber ? "_blank" : undefined} rel={whatsappNumber ? "noopener noreferrer" : undefined}>Hagamos visible tu estudio <MessageCircle size={17} /></a>
-          </div>
-        </section>
-
         <section className="fit-section">
           <div className="fit-image">
-            <img src={projects[2].poster} alt="Sesión de yoga al aire libre" loading="lazy" />
+            <img src="https://res.cloudinary.com/jfum298a/image/upload/c_limit,w_1200/f_auto/q_auto/v1794356523/para-quien-galli.png" alt="Atleta entrenando sobre un minitrampolín, fotografía FOTOS GALLI" loading="lazy" />
             <div className="fit-image-overlay" />
             <span className="fit-image-caption">MOVIMIENTO / COMUNIDAD / EXPERIENCIA</span>
           </div>
           <div className="fit-copy">
             <div className="section-kicker dark-kicker">
-              <span>04</span><span>PARA QUIÉN</span><span className="kicker-rule" />
+              <span>05</span><span>PARA QUIÉN</span><span className="kicker-rule" />
             </div>
             <h2>CONOCEMOS<br />EL <span>FITNESS.</span></h2>
             <p>No buscamos que tu estudio se vea como todos. Trabajamos con negocios donde el movimiento, la disciplina y la comunidad son parte de la marca.</p>
@@ -451,61 +623,12 @@ function App() {
           </div>
         </section>
 
-        <section className="process-section section-pad" id="proceso">
-          <div className="section-kicker dark-kicker">
-            <span>05</span><span>EL PROCESO</span><span className="kicker-rule" />
-            <span className="kicker-side">DE LA IDEA A LA ACCIÓN</span>
-          </div>
-          <div className="process-heading">
-            <h2>CLARIDAD ANTES<br /><span>DE CREAR.</span></h2>
-            <p>Antes de grabar o diseñar, entendemos qué necesita tu negocio y por qué. Así cada pieza tiene una razón de existir.</p>
-          </div>
-          <div className="process-grid">
-            {process.map((step) => {
-              const Icon = step.icon;
-              return (
-                <article className="process-step" key={step.number}>
-                  <div className="process-step-top"><span>{step.number}</span><Icon size={23} strokeWidth={1.5} /></div>
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
-                  <span className="process-step-line" />
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="faq-section section-pad" id="preguntas">
-          <div className="section-kicker dark-kicker">
-            <span>06</span><span>PREGUNTAS FRECUENTES</span><span className="kicker-rule" />
-            <span className="kicker-side">ANTES DE ESCRIBIR</span>
-          </div>
-          <div className="faq-layout">
-            <div className="faq-heading">
-              <h2>ANTES DE<br /><span>EMPEZAR.</span></h2>
-              <p>Queremos que sepas cómo trabajamos y qué puedes esperar antes de dar el siguiente paso.</p>
-            </div>
-            <div className="faq-list">
-              {faqs.map((item, index) => (
-                <details className="faq-item" key={item.question}>
-                  <summary>
-                    <span className="faq-number">0{index + 1}</span>
-                    <span className="faq-question">{item.question}</span>
-                    <span className="faq-toggle" aria-hidden="true">+</span>
-                  </summary>
-                  <p>{item.answer}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-
         <section className="cta-section">
           <div className="cta-grid" aria-hidden="true" />
           <div className="cta-shard" aria-hidden="true" />
           <div className="cta-content">
             <div className="section-kicker light-kicker">
-              <span>07</span><span>EL SIGUIENTE MOVIMIENTO</span><span className="kicker-rule" />
+              <span>06</span><span>EL SIGUIENTE MOVIMIENTO</span><span className="kicker-rule" />
             </div>
             <p className="cta-overline">TU ESTUDIO YA TIENE LA ENERGÍA.</p>
             <h2>HAGAMOS QUE<br /><span>SE NOTE.</span></h2>
@@ -520,7 +643,7 @@ function App() {
         <section className="contact-section section-pad" id="contacto">
           <div className="contact-intro">
             <div className="section-kicker dark-kicker">
-              <span>08</span><span>HABLEMOS</span><span className="kicker-rule" />
+              <span>07</span><span>HABLEMOS</span><span className="kicker-rule" />
             </div>
             <h2>CUÉNTANOS<br />DE TU <span>ESTUDIO.</span></h2>
             <p>¿Prefieres presentarte primero? Completa estos datos y abriremos WhatsApp con el mensaje listo para que tú lo envíes.</p>
@@ -568,6 +691,31 @@ function App() {
             {!whatsappNumber && <p className="form-status" role="status">Contacto por WhatsApp pendiente de activación: falta configurar el número comercial.</p>}
             {formStatus && <p className="form-status" role="status">{formStatus}</p>}
           </form>
+        </section>
+
+        <section className="faq-section section-pad" id="preguntas">
+          <div className="section-kicker dark-kicker">
+            <span>08</span><span>PREGUNTAS FRECUENTES</span><span className="kicker-rule" />
+            <span className="kicker-side">ANTES DE ESCRIBIR</span>
+          </div>
+          <div className="faq-layout">
+            <div className="faq-heading">
+              <h2>ANTES DE<br /><span>EMPEZAR.</span></h2>
+              <p>Queremos que sepas cómo trabajamos y qué puedes esperar antes de dar el siguiente paso.</p>
+            </div>
+            <div className="faq-list">
+              {faqs.map((item, index) => (
+                <details className="faq-item" key={item.question}>
+                  <summary>
+                    <span className="faq-number">0{index + 1}</span>
+                    <span className="faq-question">{item.question}</span>
+                    <span className="faq-toggle" aria-hidden="true">+</span>
+                  </summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
         </section>
       </main>
 
