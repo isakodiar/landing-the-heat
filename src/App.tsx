@@ -172,8 +172,13 @@ function ProjectCard({ project }: { project: Project }) {
     let isVisible = false;
     const syncPlayback = () => {
       if (isVisible && !document.hidden) {
+        // iOS Safari is more reliable when the muted/inline state is explicit
+        // before requesting playback. Metadata is preloaded in the element below.
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
         void video.play().catch(() => {
-          // Some devices block automatic playback; the poster and full-video link remain available.
+          // Keep the poster visible and preserve the full-video link if autoplay is blocked.
         });
       } else {
         video.pause();
@@ -195,7 +200,7 @@ function ProjectCard({ project }: { project: Project }) {
         isVisible = entry.isIntersecting;
         syncPlayback();
       },
-      { threshold: 0.23 },
+      { threshold: 0.12, rootMargin: "80px 0px" },
     );
     observer.observe(video);
     document.addEventListener("visibilitychange", syncPlayback);
@@ -216,7 +221,7 @@ function ProjectCard({ project }: { project: Project }) {
           muted
           playsInline
           loop
-          preload="none"
+          preload="metadata"
           poster={project.poster}
           aria-label={`Vista previa en movimiento de ${project.title}, sin sonido`}
         >

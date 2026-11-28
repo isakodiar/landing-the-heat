@@ -3161,3 +3161,182 @@ video {
     background: var(--ink);
   }
 }
+
+
+/* V2.3 — mobile-first project gallery and typography safeguards */
+.projects-carousel {
+  width: 100%;
+  min-width: 0;
+}
+
+.projects-carousel > .projects-grid {
+  display: flex;
+  flex-flow: row nowrap;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  grid-auto-flow: unset;
+  grid-auto-columns: unset;
+  grid-template-columns: unset;
+  gap: 18px;
+  padding: 0 0 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+
+.projects-carousel .project-card {
+  flex: 0 0 min(42%, 560px);
+  width: auto;
+  min-width: 0;
+}
+
+.projects-carousel .project-media {
+  aspect-ratio: 1.12;
+}
+
+.projects-carousel .project-preview {
+  object-fit: cover;
+  object-position: center;
+}
+
+.projects-carousel .project-meta,
+.projects-carousel .project-meta > div {
+  min-width: 0;
+}
+
+.projects-carousel .project-meta h3 {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+@media (max-width: 780px) {
+  .work-heading {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin: 44px auto 30px;
+  }
+
+  .work-heading h2 {
+    width: 100%;
+    max-width: 100%;
+    font-size: clamp(2rem, 8.2vw, 3.65rem);
+    line-height: 1.03;
+    letter-spacing: -0.09em;
+    overflow-wrap: normal;
+  }
+
+  .work-heading > p {
+    width: 100%;
+    max-width: 100%;
+    margin: 20px 0 0;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .projects-carousel > .projects-grid {
+    gap: 14px;
+  }
+
+  .projects-carousel .project-card {
+    flex-basis: min(76vw, 540px);
+  }
+
+  .projects-carousel .project-media {
+    aspect-ratio: 0.9;
+  }
+
+  .projects-carousel .project-meta {
+    display: block;
+    padding-top: 14px;
+  }
+
+  .projects-carousel .project-discipline {
+    margin-bottom: 8px;
+    font-size: 10px;
+    line-height: 1.4;
+    letter-spacing: 0.09em;
+  }
+
+  .projects-carousel .project-meta h3 {
+    font-size: clamp(27px, 4.6vw, 35px);
+    line-height: 1.04;
+  }
+
+  .projects-carousel .project-service {
+    display: block;
+    max-width: none;
+    margin-top: 8px;
+    font-size: 10px;
+    line-height: 1.45;
+    text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .work-heading h2 {
+    font-size: clamp(2rem, 8.2vw, 2.9rem);
+  }
+
+  .projects-carousel > .projects-grid {
+    gap: 12px;
+  }
+
+  .projects-carousel .project-card {
+    flex-basis: 88%;
+  }
+
+  .projects-carousel .project-media {
+    aspect-ratio: 0.84;
+  }
+
+  .projects-carousel .project-watch {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    min-height: 46px;
+    font-size: 10px;
+  }
+
+  .carousel-toolbar {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .carousel-position {
+    min-width: 0;
+    font-size: 10px;
+  }
+
+  .carousel-play-hint {
+    display: block;
+    margin: 6px 0 0;
+    font-size: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .carousel-controls {
+    flex: 0 0 auto;
+  }
+
+  .carousel-controls button {
+    width: 46px;
+    height: 46px;
+  }
+
+  .work-bottom {
+    margin-top: 34px;
+  }
+
+  .work-bottom .text-link {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}
