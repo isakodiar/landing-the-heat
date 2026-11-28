@@ -2,9 +2,9 @@ name: Build landing page
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/landing-v2-hero-carousel]
   pull_request:
-    branches: [main]
+    branches: [main, feat/landing-conversion-polish]
 
 jobs:
   build:
